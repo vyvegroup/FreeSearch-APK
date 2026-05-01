@@ -16,6 +16,9 @@ android {
     }
 
     signingConfigs {
+        getByName("debug") {
+            // default debug signing
+        }
         create("release") {
             val keystoreFile = System.getenv("KEYSTORE_FILE")
             val keystorePassword = System.getenv("KEYSTORE_PASSWORD")
@@ -24,8 +27,8 @@ android {
             if (keystoreFile != null && keystorePassword != null) {
                 storeFile = file(keystoreFile)
                 storePassword = keystorePassword
-                keyAlias = keyAlias ?: "key0"
-                keyPassword = keyPassword ?: keystorePassword
+                this.keyAlias = keyAlias ?: "key0"
+                this.keyPassword = keyPassword ?: keystorePassword
             }
         }
     }
@@ -35,6 +38,8 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
             signingConfig = signingConfigs.getByName("release")
+            v2SigningEnabled = true
+            v3SigningEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -42,7 +47,7 @@ android {
         }
         debug {
             isDebuggable = true
-            signingConfig = signingConfigs.getByName("release")
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
 

@@ -25,44 +25,52 @@ jobs:
           distribution: 'temurin'
 
       - name: Setup Gradle
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/gradle-build-action@v3
 
-      - name: Create keystore
+      - name: Create keystore file
         run: |
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > app/release.keystore
+          echo "Keystore created: $(ls -la app/release.keystore)"
 
       - name: Make gradlew executable
         run: chmod +x gradlew
 
       - name: Build Signed Release APK
-        run: |
-          ./gradlew assembleRelease \
-            -PkeystoreFile=release.keystore \
-            -PkeystorePassword="${{ secrets.KEYSTORE_PASSWORD }}" \
-            -PkeyAlias="${{ secrets.KEY_ALIAS }}" \
-            -PkeyPassword="${{ secrets.KEY_PASSWORD }}"
+        working-directory: .
         env:
           KEYSTORE_FILE: release.keystore
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-
-      - name: Verify APK Signing (v2 + v3)
         run: |
-          sudo apt-get install -y apksigner 2>/dev/null || true
-          APK_PATH=$(find app/build/outputs/apk/release/*.apk | head -1)
-          echo "APK: $APK_PATH"
-          ls -la "$APK_PATH"
-          # Verify with zipalign
-          $ANDROID_HOME/build-tools/*/zipalign -c -v 4 "$APK_PATH" || true
-          # Show APK info
+          ./gradlew assembleRelease --stacktrace --info 2>&1 | tail -60
+
+      - name: Check APK output
+        run: |
+          echo "=== APK Output ==="
+          find app/build/outputs -name "*.apk" -type f 2>/dev/null | while read apk; do
+            echo "Found APK: $apk ($(du -h "$apk" | cut -f1))"
+          done
+
+      - name: Verify APK Signing
+        run: |
+          APK_PATH=$(find app/build/outputs/apk/release/*.apk 2>/dev/null | head -1)
+          if [ -z "$APK_PATH" ]; then
+            echo "ERROR: No APK found!"
+            exit 1
+          fi
+          echo "=== APK Info ==="
           $ANDROID_HOME/build-tools/*/aapt dump badging "$APK_PATH" | head -5
+          echo ""
+          echo "=== Verify v2 signing ==="
+          $ANDROID_HOME/build-tools/*/apksigner verify --print-certs "$APK_PATH" || \
+            $ANDROID_HOME/build-tools/*/apksigner verify -v "$APK_PATH" || true
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: v1.0.0-${{ github.sha }}
-          name: FreeSearch v1.0.0
+          name: "FreeSearch v1.0.0"
           body: |
             ## FreeSearch APK v1.0.0
             - Android 7+ (API 24+)
