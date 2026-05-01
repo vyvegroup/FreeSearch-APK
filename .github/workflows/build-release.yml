@@ -68,7 +68,7 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.0.0-${{ github.sha }}
+          tag_name: v3.0.0-${{ github.sha }}
           name: "FreeSearch Browser v3.0.0"
           body: |
             ## FreeSearch Browser v3.0.0
