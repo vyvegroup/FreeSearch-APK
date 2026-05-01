@@ -65,32 +65,31 @@ jobs:
           $BUILD_TOOLS/aapt dump badging "$APK_PATH" | head -3 || true
           $BUILD_TOOLS/apksigner verify --verbose --print-certs "$APK_PATH" 2>&1 || true
 
-      - name: Copy APK for release upload
-        if: success()
-        run: |
-          APK_PATH=$(find . -path "*/outputs/apk/release/*" -name "*.apk" 2>/dev/null | head -1)
-          if [ -n "$APK_PATH" ]; then cp "$APK_PATH" build-output.apk; echo "Copied: $APK_PATH"; else echo "No APK found"; fi
-
       - name: Upload APK to Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v3.0.0-${{ github.sha }}
-          name: "FreeSearch Browser v3.0.0"
-          body: |
-            ## FreeSearch Browser v3.0.0
-            - Chromium-based browser
-            - Self-hosted crawler + indexer + search
-            - No content filtering
-            - SQLite FTS5 + BM25 ranking
-            - Android 7+ (API 24+)
-            - Package: com.vyvegroup.freesearch
-            - Signed v2+v3
-          files: |
-            build-output.apk
-          draft: false
-          prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          APK_PATH=$(find . -path "*/outputs/apk/release/*" -name "*.apk" 2>/dev/null | head -1)
+          if [ -z "$APK_PATH" ]; then echo "ERROR: No APK"; exit 1; fi
+          echo "Releasing: $APK_PATH ($(du -h "$APK_PATH" | cut -f1))"
+          TAG="v3.0.0-${{ github.sha }}"
+          # Create release
+          curl -s -X POST \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/${{ github.repository }}/releases" \
+            -d "{\"tag_name\":\"$TAG\",\"name\":\"FreeSearch Browser v3.0.0\",\"body\":\"FreeSearch Browser v3.0.0 - Chromium-based with built-in FreeSearch engine. No content filtering.\",\"draft\":false,\"prerelease\":false}" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('id',''), d.get('message',''))"
+          # Get upload URL
+          RELEASE_ID=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/repos/${{ github.repository }}/releases/tags/$TAG" | python3 -c "import sys,json; print(json.load(sys.stdin).get('id',''))")
+          UPLOAD_URL=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/repos/${{ github.repository }}/releases/$RELEASE_ID" | python3 -c "import sys,json; d=json.load(sys.stdin); [print(a['name'],a['upload_url']) for a in d.get('upload_url',[])]")
+          echo "Release ID: $RELEASE_ID"
+          echo "Upload URL: $UPLOAD_URL"
+          # Upload APK
+          curl -s -X POST \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Content-Type: application/vnd.android.package-archive" \
+            --data-binary "@$APK_PATH" \
+            "https://uploads.github.com/repos/${{ github.repository }}/releases/$RELEASE_ID/assets?name=FreeSearch-Browser-v3.apk" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('name',''), d.get('state',''), d.get('message',''))"
 
       - name: Upload APK as artifact
         uses: actions/upload-artifact@v4
