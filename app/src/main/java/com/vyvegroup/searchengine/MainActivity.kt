@@ -176,7 +176,8 @@ class MainActivity : AppCompatActivity() {
 
         searchInput.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_SEARCH ||
-                actionId == EditorInfo.KEYCODE_ENTER) {
+                actionId == EditorInfo.IME_ACTION_DONE ||
+                actionId == EditorInfo.IME_ACTION_GO) {
                 performSearch()
                 true
             } else false
@@ -211,8 +212,8 @@ class MainActivity : AppCompatActivity() {
         webView.visibility = View.VISIBLE
         webView.loadUrl(url)
 
-        android.view.inputmethod.InputMethodManager
-            .hideSoftInputFromWindow(searchInput.windowToken, 0)
+        val imm = getSystemService(android.content.Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
+        imm.hideSoftInputFromWindow(searchInput.windowToken, 0)
     }
 
     private fun setupSwipeRefresh() {
