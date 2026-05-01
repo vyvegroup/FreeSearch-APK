@@ -30,8 +30,6 @@ jobs:
       - name: Create keystore file
         run: |
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > app/release.keystore
-          ls -la app/release.keystore
-          file app/release.keystore
 
       - name: Make gradlew executable
         run: chmod +x gradlew
@@ -42,30 +40,29 @@ jobs:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: ./gradlew assembleRelease
+        run: ./gradlew assembleRelease 2>&1 | tee build-output.log
+
+      - name: Upload build log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build-output.log
 
       - name: List all APK outputs
+        if: always()
         run: |
-          echo "=== Scanning for APK files ==="
+          echo "=== APK files ==="
           find . -name "*.apk" -type f 2>/dev/null
-          echo "=== Build outputs ==="
-          ls -laR app/build/outputs/ 2>/dev/null || echo "No outputs dir"
 
       - name: Verify APK Signing
         if: always()
         continue-on-error: true
         run: |
           APK_PATH=$(find . -path "*/outputs/apk/release/*" -name "*.apk" 2>/dev/null | head -1)
-          if [ -z "$APK_PATH" ]; then
-            echo "WARNING: No release APK found"
-            find . -name "*.apk" -type f 2>/dev/null
-            exit 0
-          fi
-          echo "APK: $APK_PATH"
+          if [ -z "$APK_PATH" ]; then exit 0; fi
           BUILD_TOOLS=$ANDROID_HOME/build-tools/$(ls $ANDROID_HOME/build-tools/ | sort -V | tail -1)
-          echo "Build tools: $BUILD_TOOLS"
           $BUILD_TOOLS/aapt dump badging "$APK_PATH" | head -3 || true
-          echo "=== Signing ==="
           $BUILD_TOOLS/apksigner verify --verbose --print-certs "$APK_PATH" 2>&1 || true
 
       - name: Create GitHub Release

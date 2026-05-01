@@ -4,14 +4,14 @@ plugins {
 }
 
 android {
-    namespace = "com.vyvegroup.searchengine"
+    namespace = "com.vyvegroup.freesearch"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.vyvegroup.searchengine"
+        applicationId = "com.vyvegroup.freesearch"
         minSdk = 24
         targetSdk = 34
-        versionCode = 1
+        versionCode = 3
         versionName = "3.0.0"
     }
 
@@ -34,10 +34,7 @@ android {
         release {
             isMinifyEnabled = false
             signingConfig = signingConfigs.getByName("release")
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
         debug {
             isDebuggable = true
@@ -49,25 +46,11 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-
-    kotlinOptions {
-        jvmTarget = "17"
-    }
-
-    buildFeatures {
-        viewBinding = true
-    }
+    kotlinOptions { jvmTarget = "17" }
 
     packaging {
         resources {
-            excludes += setOf(
-                "META-INF/DEPENDENCIES",
-                "META-INF/LICENSE",
-                "META-INF/LICENSE.txt",
-                "META-INF/notice.txt",
-                "META-INF/NOTICE",
-                "META-INF/*.kotlin_module"
-            )
+            excludes += setOf("META-INF/DEPENDENCIES", "META-INF/LICENSE", "META-INF/NOTICE", "META-INF/*.kotlin_module")
         }
     }
 }
@@ -79,8 +62,6 @@ dependencies {
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
     implementation("androidx.recyclerview:recyclerview:1.3.2")
-    implementation("androidx.cardview:cardview:1.0.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     implementation("com.google.code.gson:gson:2.10.1")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("org.jsoup:jsoup:1.17.2")
