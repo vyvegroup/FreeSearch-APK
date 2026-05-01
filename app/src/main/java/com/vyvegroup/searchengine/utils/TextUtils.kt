@@ -13,12 +13,13 @@ object TextUtils {
         var text = html
 
         // Remove script and style blocks
-        text = text.replace(Regex("""<script[^>]*>.*?</script>""", RegexOption.DOT_MATCHES_ALL or RegexOption.IGNORE_CASE), "")
-        text = text.replace(Regex("""<style[^>]*>.*?</style>""", RegexOption.DOT_MATCHES_ALL or RegexOption.IGNORE_CASE), "")
-        text = text.replace(Regex("""<noscript[^>]*>.*?</noscript>""", RegexOption.DOT_MATCHES_ALL or RegexOption.IGNORE_CASE), "")
-        text = text.replace(Regex("""<iframe[^>]*>.*?</iframe>""", RegexOption.DOT_MATCHES_ALL or RegexOption.IGNORE_CASE), "")
-        text = text.replace(Regex("""<nav[^>]*>.*?</nav>""", RegexOption.DOT_MATCHES_ALL or RegexOption.IGNORE_CASE), "")
-        text = text.replace(Regex("""<footer[^>]*>.*?</footer>""", RegexOption.DOT_MATCHES_ALL or RegexOption.IGNORE_CASE), "")
+        val htmlOpts = setOf(RegexOption.DOT_MATCHES_ALL, RegexOption.IGNORE_CASE)
+        text = text.replace(Regex("""<script[^>]*>.*?</script>""", htmlOpts), "")
+        text = text.replace(Regex("""<style[^>]*>.*?</style>""", htmlOpts), "")
+        text = text.replace(Regex("""<noscript[^>]*>.*?</noscript>""", htmlOpts), "")
+        text = text.replace(Regex("""<iframe[^>]*>.*?</iframe>""", htmlOpts), "")
+        text = text.replace(Regex("""<nav[^>]*>.*?</nav>""", htmlOpts), "")
+        text = text.replace(Regex("""<footer[^>]*>.*?</footer>""", htmlOpts), "")
 
         // Remove all HTML tags
         text = text.replace(Regex("<[^>]+>"), "")
@@ -50,7 +51,8 @@ object TextUtils {
 
     fun extractTitle(html: String, url: String): String {
         // Try <title> tag
-        val titleRegex = Regex("""<title[^>]*>(.*?)</title>""", RegexOption.IGNORE_CASE or RegexOption.DOT_MATCHES_ALL)
+        val titleOpts = setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL)
+        val titleRegex = Regex("""<title[^>]*>(.*?)</title>""", titleOpts)
         val titleMatch = titleRegex.find(html)
         if (titleMatch != null) {
             val title = titleMatch.groupValues[1].trim()
@@ -60,7 +62,7 @@ object TextUtils {
         }
 
         // Try h1 tag
-        val h1Regex = Regex("""<h1[^>]*>(.*?)</h1>""", RegexOption.IGNORE_CASE or RegexOption.DOT_MATCHES_ALL)
+        val h1Regex = Regex("""<h1[^>]*>(.*?)</h1>""", titleOpts)
         val h1Match = h1Regex.find(html)
         if (h1Match != null) {
             val title = h1Match.groupValues[1].trim()

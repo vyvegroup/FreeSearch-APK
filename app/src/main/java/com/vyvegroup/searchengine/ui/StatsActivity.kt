@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.vyvegroup.searchengine.R
 import com.vyvegroup.searchengine.data.SearchDatabase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -12,7 +13,7 @@ class StatsActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_stats)
+        setContentView(com.vyvegroup.searchengine.R.layout.activity_stats)
 
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.title = "Index Statistics"
