@@ -66,24 +66,24 @@ jobs:
           $BUILD_TOOLS/apksigner verify --verbose --print-certs "$APK_PATH" 2>&1 || true
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v3.0.0-${{ github.sha }}
-          name: "FreeSearch Browser v3.0.0"
-          body: |
-            ## FreeSearch Browser v3.0.0
-            - Full Browser with built-in search engine
+        run: |
+          APK_PATH=$(find . -path "*/outputs/apk/release/*" -name "*.apk" 2>/dev/null | head -1)
+          if [ -z "$APK_PATH" ]; then echo "No APK found"; exit 1; fi
+          echo "APK: $APK_PATH ($(du -h "$APK_PATH" | cut -f1))"
+          TAG="v3.0.0-${{ github.sha }}"
+          gh release create "$TAG" "$APK_PATH" \
+            --title "FreeSearch Browser v3.0.0" \
+            --notes "## FreeSearch Browser v3.0.0
+            - Chromium-based browser
             - Self-hosted crawler + indexer + search
             - No content filtering
-            - SQLite FTS5 with BM25 ranking
+            - SQLite FTS5 + BM25 ranking
             - Android 7+ (API 24+)
-            - APK Signed v2+v3
-          files: |
-            app/build/outputs/apk/release/*.apk
-          draft: false
-          prerelease: false
+            - Package: com.vyvegroup.freesearch
+            - Signed v2+v3" \
+            --repo "${{ github.repository }}"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload APK as artifact
         uses: actions/upload-artifact@v4
