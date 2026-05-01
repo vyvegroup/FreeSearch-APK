@@ -72,15 +72,15 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v1.0.0-${{ github.sha }}
-          name: "FreeSearch v1.0.0"
+          name: "FreeSearch Browser v3.0.0"
           body: |
-            ## FreeSearch APK v1.0.0
+            ## FreeSearch Browser v3.0.0
+            - Full Browser with built-in search engine
+            - Self-hosted crawler + indexer + search
+            - No content filtering
+            - SQLite FTS5 with BM25 ranking
             - Android 7+ (API 24+)
             - APK Signed v2+v3
-            - Multi-engine search (DuckDuckGo, Brave, Startpage, Qwant, Custom)
-            - No content filtering
-            - Dark mode support
-            - Search history
           files: |
             app/build/outputs/apk/release/*.apk
           draft: false
