@@ -20,15 +20,14 @@ android {
             // default debug signing
         }
         create("release") {
-            val keystoreFile = System.getenv("KEYSTORE_FILE")
-            val keystorePassword = System.getenv("KEYSTORE_PASSWORD")
-            val keyAlias = System.getenv("KEY_ALIAS")
-            val keyPassword = System.getenv("KEY_PASSWORD")
-            if (keystoreFile != null && keystorePassword != null) {
-                storeFile = file(keystoreFile)
+            val keystorePassword = System.getenv("KEYSTORE_PASSWORD") ?: ""
+            val keyAlias = System.getenv("KEY_ALIAS") ?: "key0"
+            val keyPassword = System.getenv("KEY_PASSWORD") ?: ""
+            if (keystorePassword.isNotEmpty()) {
+                storeFile = file("release.keystore")
                 storePassword = keystorePassword
-                this.keyAlias = keyAlias ?: "key0"
-                this.keyPassword = keyPassword ?: keystorePassword
+                this.keyAlias = keyAlias
+                this.keyPassword = keyPassword
             }
         }
     }
@@ -38,8 +37,6 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
             signingConfig = signingConfigs.getByName("release")
-            v2SigningEnabled = true
-            v3SigningEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
